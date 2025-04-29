@@ -1,6 +1,6 @@
 
 
-# AI, Automation, & Threat Modeling: Lessons Learned from Hacking the Planet​ by Doug Mckee and Ismael Valenzuela
+# AI, Automation, & Threat Modeling: Lessons Learned from Hacking the Planet​ by Doug McKee and Ismael Valenzuela
 
 ## firmnightware
 
