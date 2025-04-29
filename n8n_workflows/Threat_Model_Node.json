@@ -1,0 +1,259 @@
+{
+  "name": "Threat Model Node",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -80,
+        -560
+      ],
+      "id": "4cbe4a49-66d2-4245-8479-5ac913a0f742",
+      "name": "When chat message received",
+      "webhookId": "5a189795-76da-4641-bc4c-b0b81ad0e009"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=#role\nYou are ThreatModeler, an advanced cybersecurity agent specializing in process-level threat modeling using DREAD methodology and attack tree visualization. Your expertise lies in transforming complex system behavior data into actionable security insights.\n\n#data_integration\n1. PRIMARY SOURCE: procmon_scan_results vector store\n   - Contains real-time process monitoring data during application installation\n   - Key schema fields for analysis:\n     • Process Name: Target executable for modeling\n     • Operation: Activity classification (FileSystem, Registry, Network, IPC)\n     • Path: Resource location context\n     • Detail: Operation-specific metadata\n\n2. ENRICHMENT SOURCE: Vulnerability_Intelligence_Processor\n   - Provides CVE and vulnerability intelligence for identified processes\n   - Contains severity ratings, exploit availability, and affected versions\n   - Accessed by passing process name as product name string\n\n#vulnerability_processor_integration\n1. DATA RETRIEVAL:\n   - Extract executable name from procmon_scan_results (e.g., \"chrome.exe\" → \"Chrome\")\n   - Pass normalized product name to Vulnerability_Intelligence_Processor\n   - For specific CVEs identified in research, pass CVE ID directly (e.g., \"CVE-2023-1234\")\n\n2. RESPONSE PARSING:\n   - Extract vulnerability data from JSON response\n   - Prioritize vulnerabilities with \"critical\" or \"high\" severity\n   - Focus on vulnerabilities with \"exploitable_count\" > 0\n   - Reference specific CVEs in attack tree construction\n\n3. INTEGRATION PATH:\n   - Process Monitoring Data → Process Name → Vulnerability_Intelligence_Processor → CVE Data → DREAD Assessment\n\n#analysis_workflow\n1. PROCESS IDENTIFICATION & DATA COLLECTION\n- Query procmon_scan_results with the target process name\n- Execute parallel vulnerability lookup by sending process name to Vulnerability_Intelligence_Processor\n- Identify process relationships and dependencies for scope definition\n\n2. BEHAVIOR ANALYSIS\n- Map process interactions with filesystem, registry, network, and IPC\n- Identify privilege levels and permission requirements\n- Document resource access patterns and potential abuse vectors\n\n3. VULNERABILITY CORRELATION\n- Associate observed behaviors with potential attack scenarios\n- Correlate known CVEs from Vulnerability_Intelligence_Processor with observed activity\n- Determine potential zero-day vectors based on behavior patterns\n\n4. DREAD QUANTIFICATION\n- Damage: Calculate maximum impact based on accessed resources and CVE severity ratings\n- Reproducibility: Assess environmental dependencies for attack replication\n- Exploitability: Measure technical barriers based on exploit_status from CVE data\n- Affected users: Determine scope based on deployment context\n- Discoverability: Evaluate detection evasion difficulty\n\n5. ATTACK TREE CONSTRUCTION\n- Build hierarchical representation of attack vectors\n- Map dependencies between attack stages\n- Identify critical paths and common dependencies\n\n#data_retrieval_protocols\n- procmon_scan_results: Query with process name as primary key\n- Vulnerability_Intelligence_Processor: Submit product name extracted from process name\n- Format: Send string without formatting (processor handles conversion)\n- Example: \"chrome.exe\" → Send \"Chrome\" to processor\n- Response: Parse JSON response for vulnerability data\n- SerpAPI/Wikipedia: Use for context on process functionality\n\n#scoring_guidelines\n- Damage (1-10): Resource sensitivity, privilege level, potential for lateral movement\n- Reproducibility (1-10): Configuration dependencies, timing requirements\n- Exploitability (1-10): Technical complexity, prerequisite access\n- Affected users (1-10): Deployment scope, user interaction requirements\n- Discoverability (1-10): Logging visibility, anomaly detection probability\n\n#output_deliverables\n1. EXECUTIVE SUMMARY\n- One-paragraph threat overview with priority recommendation\n\n2. DATA SOURCE UTILIZATION\n- Evidence trail showing how procmon_scan_results and vulnerability data influenced analysis\n- Example: \"Process X exhibits registry persistence through HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run as evidenced by procmon_scan_results\"\n- Include reference to specific CVEs identified by Vulnerability_Intelligence_Processor\n\n3. DREAD ASSESSMENT\n- Component scores with data-backed justifications\n- Overall risk rating with decimal precision: (D+R+E+A+D)/5\n- CVE references where applicable\n\n4. ATTACK TREE VISUALIZATION\n```mermaid\ngraph TD\n    A[Root: Process Compromise] --> B[Attack Vector 1]\n    A --> C[Attack Vector 2]\n\n5. MITIGATION ROADMAP\n- Prioritized countermeasures with implementation complexity ratings\n- Detection strategies for identified attack vectors\n- References to specific patches or updates for identified CVEs\n\n#process_automation\n- Do not prompt for additional input\n- Automatically normalize process names for vulnerability lookup\n- Proceed with available data even when limited\n- Include confidence ratings when making inferences with limited data"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        460,
+        -560
+      ],
+      "id": "e4e3d87a-af71-4df3-98d6-75184ffd81ee",
+      "name": "Threat Modeling"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        140,
+        -340
+      ],
+      "id": "949b94c3-3240-4f78-98e3-54d1f0bc09f5",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "WP3Ng2LbpDbqBmUj",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "Vulnerability_Enrichment",
+        "description": "Call this tool to get information about vulnerabilities for a specific vendor.  This is a consideration for the larger threat model.",
+        "workflowId": {
+          "__rl": true,
+          "value": "sXiUx0FMBY2PEsYN",
+          "mode": "list",
+          "cachedResultName": "RSA — RRR Node"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [
+            "vendor"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [
+        780,
+        -340
+      ],
+      "id": "fa3c46c0-6105-4458-8fb5-77ded42c0117",
+      "name": "Call Vulnerability_Enrichment Tool"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        660,
+        -340
+      ],
+      "id": "b9c926e2-73c0-44bc-af3c-40ec3192ff91",
+      "name": "SerpAPI",
+      "credentials": {
+        "serpApi": {
+          "id": "PdVgyrw8j5z23Dp3",
+          "name": "SerpAPI account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolWikipedia",
+      "typeVersion": 1,
+      "position": [
+        540,
+        -340
+      ],
+      "id": "57dc6eca-c269-42a0-99a6-6182998e8504",
+      "name": "Wikipedia"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "procmon_scan_results",
+        "toolDescription": "This contains data from running Microsoft's Process Monitor tool during the monitoring of a process.",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "procmon",
+          "mode": "list",
+          "cachedResultName": "procmon"
+        },
+        "topK": 200,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1,
+      "position": [
+        260,
+        -320
+      ],
+      "id": "da0187b9-a3b4-4cf6-9dc4-64bce318c1e1",
+      "name": "ProcMon Vector Store",
+      "credentials": {
+        "qdrantApi": {
+          "id": "p6tOO8IGbTbWWH8S",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "text-embedding-3-large",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        260,
+        -200
+      ],
+      "id": "7660fece-19ac-4713-8a41-042a89bb4cac",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "WP3Ng2LbpDbqBmUj",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Threat Modeling",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Threat Modeling",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Vulnerability_Enrichment Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Threat Modeling",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI": {
+      "ai_tool": [
+        [
+          {
+            "node": "Threat Modeling",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wikipedia": {
+      "ai_tool": [
+        [
+          {
+            "node": "Threat Modeling",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ProcMon Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "Threat Modeling",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "ProcMon Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b5481841-a85c-4e5f-9087-323b03d28003",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9667d8eb88f2faa74b2423a3f0462118689d7f8a38785c1d5c47c6cac4222325"
+  },
+  "id": "nJcFaUm9TVUGs6iy",
+  "tags": []
+}

@@ -1,0 +1,325 @@
+{
+  "name": "DataWrangling",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1140,
+        -80
+      ],
+      "id": "472b1e31-d996-47b3-b938-9fcea5b41210",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.microsoftOneDrive",
+      "typeVersion": 1,
+      "position": [
+        -580,
+        -80
+      ],
+      "id": "3aa06ebf-c103-46d7-90c6-361c24123104",
+      "name": "Microsoft OneDrive",
+      "credentials": {
+        "microsoftOneDriveOAuth2Api": {
+          "id": "4gvsNRVNowtRonN7",
+          "name": "Microsoft Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "text-embedding-3-large",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -40,
+        120
+      ],
+      "id": "f9b893b4-0add-48fe-a565-37c327825796",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "WP3Ng2LbpDbqBmUj",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "=Process Name",
+                "value": "={{ $('Extract from ProcMon').item.json['Process Name'] }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        80,
+        120
+      ],
+      "id": "d9467202-fa5b-4f4e-80f8-0f3bb523fa5c",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkSize": 10000,
+        "chunkOverlap": 1000,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        160,
+        260
+      ],
+      "id": "8b2622ef-de3a-4077-9354-6e2047f31065",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9cbb5439-4266-4718-9372-2862ca284f1c",
+              "name": "Process Operation ",
+              "value": "=Time of Day: {{ $json['Time of Day'] }}\nProcess Name: {{ $json['Process Name'] }}\nPID: {{ $json.PID }}\nOperation: {{ $json.Operation }}\nPath: {{ $json.Path }}\nResult: {{ $json.Result }}\nDetail: {{ $json.Detail }}\nTID: {{ $json.TID }}",
+              "type": "string"
+            },
+            {
+              "id": "dc48c0ab-a660-41d8-8d53-c9311d251373",
+              "name": "Source File",
+              "value": "={{ $('Switch').item.json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "8dbc9716-8e82-43fe-8970-40091179f98f",
+              "name": "Source Type",
+              "value": "ProcMon",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -120,
+        -80
+      ],
+      "id": "faade7ee-b4b1-4c2d-be2f-c40df080136b",
+      "name": "Process Operation Creation"
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "folderId": "52A11EF44666EA4E!743376"
+      },
+      "type": "n8n-nodes-base.microsoftOneDrive",
+      "typeVersion": 1,
+      "position": [
+        -980,
+        -80
+      ],
+      "id": "966701fa-1d31-407a-87d9-ccad2147f39e",
+      "name": "Microsoft OneDrive3",
+      "credentials": {
+        "microsoftOneDriveOAuth2Api": {
+          "id": "4gvsNRVNowtRonN7",
+          "name": "Microsoft Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "fileId": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.microsoftOneDrive",
+      "typeVersion": 1,
+      "position": [
+        -780,
+        -80
+      ],
+      "id": "5676ac13-aa9d-4bdd-936b-f7a8ad2d3414",
+      "name": "Microsoft OneDrive1",
+      "credentials": {
+        "microsoftOneDriveOAuth2Api": {
+          "id": "4gvsNRVNowtRonN7",
+          "name": "Microsoft Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        -80
+      ],
+      "id": "9bc5fa47-fd68-45bb-83cd-86cc839e9855",
+      "name": "Extract from ProcMon"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "procmon",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1,
+      "position": [
+        100,
+        -80
+      ],
+      "id": "21430a11-ec20-4142-8656-ae010f36d839",
+      "name": "ProcMon Vector Store",
+      "credentials": {
+        "qdrantApi": {
+          "id": "p6tOO8IGbTbWWH8S",
+          "name": "QdrantApi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Microsoft OneDrive3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Microsoft OneDrive": {
+      "main": [
+        [
+          {
+            "node": "Extract from ProcMon",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "ProcMon Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "ProcMon Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Operation Creation": {
+      "main": [
+        [
+          {
+            "node": "ProcMon Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Microsoft OneDrive3": {
+      "main": [
+        [
+          {
+            "node": "Microsoft OneDrive1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Microsoft OneDrive1": {
+      "main": [
+        [
+          {
+            "node": "Microsoft OneDrive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from ProcMon": {
+      "main": [
+        [
+          {
+            "node": "Process Operation Creation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ProcMon Vector Store": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "85aba37d-8d5c-4e7a-9d72-76880ca7cc5a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9667d8eb88f2faa74b2423a3f0462118689d7f8a38785c1d5c47c6cac4222325"
+  },
+  "id": "C0SLxejtFjrgzpyU",
+  "tags": []
+}

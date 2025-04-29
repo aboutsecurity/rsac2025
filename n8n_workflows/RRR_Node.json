@@ -1,0 +1,206 @@
+{
+  "name": "RRR Node",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-2025-04-14",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-2025-04-14"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        500,
+        -80
+      ],
+      "id": "59ed48f4-bfd0-4c00-a93b-a6078733938a",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "WP3Ng2LbpDbqBmUj",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "=# role\nYou are **VulnIntel**, a vulnerability‑intelligence microservice that receives JSON queries and returns structured CVE data from Rapid Risk Radar (RRR). You must choose the right data source and then leverage the choosen source to get vulnerability‑intelligence. \n\n#data_sources\n- Basic RRR API: For single CVE lookup (e.g., CVE-2023-1234)\n- Advanced RRR API: For complex vulnerability searches with filtering capabilities\n\n#api_selection\n- IF input value matches CVE pattern (CVE-YYYY-NNNN):\n  - Use  BASIC RRR API\n- ELSE:\n  - Use ADVANCED RRR API with value as search term\n\n#api_usage_rules\n1. BASIC RRR API:\n   - Use ONLY for single CVE queries\n   - Input format: Exact CVE ID (e.g., CVE-2023-1234)\n   - Do not add additional parameters\n\n2. ADVANCED RRR API:\n   - Use for all multi-CVE searches and filtered queries\n   - Search term formatting:\n     - searchTerms is always an array: For the string \"KeePass\" send as array [\"KeePass\"]\n     - Multiple terms in one concept: \"Microsoft Excel\" → [\"Microsoft Excel\"]\n     - Never use quotation marks around the array brackets (e.g., \"[KeePass]\" is invalid)\n     - Never provide searchTerms as a string (e.g., \"KeePass\")\n\n#query_examples\n<example query>\n[{\"query\": \"KeePass\"}]\n</example query>\n<response>\nAdvanced RRR API with:\n{\n  \"limit\": 10,\n  \"orderBy\": null,\n  \"searchTerms\":[\"KeePass\"],\n  \"weights\": {\n    \"generalWeights\": {\n      \"cvssScoreWeight\": 8,\n      \"dateAddedWeight\": 5,\n      \"epssScoreWeight\": 7,\n      \"exploitedInTheWildWeight\": 10,\n      \"publicChatterWeight\": 6\n    },\n    \"keywordWeights\": []\n  }\n}\n</response>\n\n<example query>\n[{\"query\": \"CVE-2023-1234\"}]\n</example query>\n<response>\nBasic RRR API with CVE-2023-1234\n</response>\n\n\n# error_handling\n- No matches? → \"vulnerabilities\": [] (never null).  \n- API failure? → populate top‑level \"error\": \"<description>\", keep \"vulnerabilities\": [].\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        500,
+        -240
+      ],
+      "id": "08ec4816-5638-4878-bd70-8b00f9e663c4",
+      "name": "CVE Agent",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        340,
+        -240
+      ],
+      "id": "05726c44-e89d-49ad-9c8a-2b17a70f7cde",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Basic API, no Auth",
+        "url": "=https://app.rapidriskradar.com/api/basic/cve/{placeholder}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        740,
+        -80
+      ],
+      "id": "6faf95d8-afbe-4c54-9839-0286c8443ed2",
+      "name": "Basic RRR API"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Advanced RRR API",
+        "method": "POST",
+        "url": "https://app.rapidriskradar.com/api/cve/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"limit\": {limit},\n  \"orderBy\": null,\n  \"showReviewed\": {showReviewed},\n  \"searchTerms\": {searchTerms},\n  \"weights\": {\n    \"generalWeights\": {\n      \"cvssScoreWeight\": {cvssScoreWeight},\n      \"epssScoreWeight\": {epssScoreWeight},\n      \"dateAddedWeight\": {dateAddedWeight},\n      \"exploitedInTheWildWeight\": {exploitedInTheWildWeight},\n      \"publicChatterWeight\": {publicChatterWeight}\n    },\n    \"keywordWeights\": []\n  }\n}",
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "limit",
+              "description": "How many CVEs should be returned by RRR",
+              "type": "number"
+            },
+            {
+              "name": "searchTerms",
+              "description": "Always a JSON array"
+            },
+            {
+              "name": "showReviewed",
+              "description": "Indicates whether to include reviewed CVEs. Default is false."
+            },
+            {
+              "name": "cvssScoreWeight",
+              "description": "Weight for the CVSS (Common Vulnerability Scoring System) score.",
+              "type": "number"
+            },
+            {
+              "name": "epssScoreWeight",
+              "description": "Weight for the EPSS (Exploit Prediction Scoring System) score.",
+              "type": "number"
+            },
+            {
+              "name": "dateAddedWeight",
+              "description": "Weight for the date the CVE was added.",
+              "type": "number"
+            },
+            {
+              "name": "exploitedInTheWildWeight",
+              "description": "Weight for whether the CVE is known to be exploited in the wild.",
+              "type": "number"
+            },
+            {
+              "name": "publicChatterWeight",
+              "description": "Weight for public chatter related to the CVE.",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        -140
+      ],
+      "id": "9aeb80f9-8b10-4038-99b3-8a722e6f3ca8",
+      "name": "Advanced RRR API",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "uXiBZMHAArpTDuFc",
+          "name": "Header Auth RRR API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "CVE Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "CVE Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CVE Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Basic RRR API": {
+      "ai_tool": [
+        [
+          {
+            "node": "CVE Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Advanced RRR API": {
+      "ai_tool": [
+        [
+          {
+            "node": "CVE Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f522e35d-a324-4458-b6fd-8207a9c341dc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9667d8eb88f2faa74b2423a3f0462118689d7f8a38785c1d5c47c6cac4222325"
+  },
+  "id": "sXiUx0FMBY2PEsYN",
+  "tags": []
+}
