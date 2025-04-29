@@ -1,4 +1,8 @@
-# firmnightware
+
+
+# AI, Automation, & Threat Modeling: Lessons Learned from Hacking the Planet​ by Doug Mckee and Ismael Valenzuela
+
+## firmnightware
 
 - clone the repository, set up the KEV database and run the streamlit app 
   ```bash
