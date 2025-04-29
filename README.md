@@ -7,7 +7,7 @@
 - clone the repository, set up the KEV database and run the streamlit app 
   ```bash
   git clone https://github.com/aboutsecurity/rsac2025.git  
-  cd rsac2025
+  cd rsac2025/firmnightware
   python3 -m venv .venv
   pip install -r requirements.txt
   python3 download_kev.py # first download known exploit vulnerabilities, quit after the download there should be a cisa_vulnerabilities.db
@@ -51,6 +51,7 @@ This script is designed to download and manage the CISA Known Exploited Vulnerab
 3. **Populate the Database**: Inserts the vulnerabilities data into the database.
 4. **Lookup CVE Entries**: Provides an interactive prompt to lookup specific CVE entries in the database.
 
+
 ## Usage
 
 Run the script to download the KEV feed, populate the database, and interactively lookup CVE entries.
@@ -60,3 +61,37 @@ python download_kev.py
 ```
 
 The database will be saved as `cisa_vulnerabilities.db`.
+
+## n8n workflows
+
+### Running n8n
+
+n8n can be run **locally** or **in the cloud**:
+
+- **Local Setup**:  
+  It’s recommended to use the [Self-Hosted AI Starter Kit](https://docs.n8n.io/hosting/starter-kits/ai-starter-kit/).  
+  This is a completely free option and a great way to get started.
+
+- **Cloud Setup**:  
+  To run workflows in the cloud, simply [create an account on n8n.io](https://n8n.io/).
+
+### API Keys
+
+The workflows will require you to input your own API keys:
+
+- **OpenAI**: [Get your API key here](https://platform.openai.com/api-keys)
+- **Rapid Risk Radar**: [Get your API key here](https://www.rapidriskradar.com/)
+- **Microsoft OneDrive**: Enter your credentials when prompted.
+
+
+### Import Workflows
+
+In either local or remote setups, to leverage the workflows, create a new workflow by clicking the orange **"Create Workflow"** button in the upper left corner.  
+
+![](./img/2025-04-29-09-23-43.png)
+
+In the new workflow, you will need to **"Import from file"** the workflows from the `n8n_workflows` directory of this repo.  
+To do this, click on the three-dot menu in the top left of the newly created workflow and select **"Import from file"**.
+
+![](./img/2025-04-29-09-25-27.png)
+
