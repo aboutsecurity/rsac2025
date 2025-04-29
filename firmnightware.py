@@ -27,12 +27,12 @@ def main():
         st.header("Configuration")
         retool_url = st.text_input(
             "Retool Workflow URL", 
-            value="https://api.retool.com/v1/workflows/aaa24e53-5e2c-4eed-a08e-506e7485a5f3/startTrigger",
+            value="insert_retool_url_here",
             type="default"
         )
         api_key = st.text_input(
             "Retool API Key", 
-            value="retool_wk_0473f1dbc0f24729bd12555ef2a516d3", 
+            value="insert_retool_api_key_here", 
             type="password"
         )
     
