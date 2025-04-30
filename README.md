@@ -2,6 +2,9 @@
 
 # AI, Automation, & Threat Modeling: Lessons Learned from Hacking the Planet​ by Doug McKee and Ismael Valenzuela
 
+## Product Security Workflow
+https://www.sans.org/posters/overall-product-security-assessment/ 
+
 ## firmnightware
 
 - clone the repository, set up the KEV database and run the streamlit app 
